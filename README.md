@@ -9,5 +9,6 @@ There are 3 files to build the docker image, and after that to get the output fo
 
 
 Or I have uploaded the built image to my DockerHub repo, the output can be get from the following command
-       docker run -e AWS_ACCESS_KEY_ID=<AKIA...> -e AWS_SECRET_ACCESS_KEY=<...> -e AWS_DEFAULT_REGION=us-east-1 byomkesh99/aws_bdas_usg:0.01
+          
+          docker run -e AWS_ACCESS_KEY_ID=<AKIA...> -e AWS_SECRET_ACCESS_KEY=<...> -e AWS_DEFAULT_REGION=us-east-1 byomkesh99/aws_bdas_usg:0.01
 
