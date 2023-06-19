@@ -1,38 +1,40 @@
 import boto3
+import os
 
-def find_security_groups_without_network_interfaces():
+def search_sg_with_no_interfaces():
     # Create a session using your AWS credentials
     session = boto3.Session(
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        region_name=AWS_DEFAULT_REGION  # Replace with your desired region
+        aws_access_key_id=os.environ.get('AWS_ACCESS_KEY_ID'),
+        aws_secret_access_key=os.environ.get('AWS_SECRET_ACCESS_KEY'),
+        region_name=os.environ.get('AWS_DEFAULT_REGION')
     )
 
-    # Create an EC2 client
+    # Session for EC2 Client
     ec2_client = session.client('ec2')
 
-    # Retrieve a list of all security groups
+    # Getting the network interfaces in user account
+    response = ec2_client.describe_network_interfaces()
+
+    # Extract the security group IDs from the network interfaces
+    interface_sg_ids = [interface['Groups'][0]['GroupId'] for interface in response['NetworkInterfaces']]
+
+    # Getting  security groups (SGs) in user account
     response = ec2_client.describe_security_groups()
-    security_groups = response['SecurityGroups']
 
-    # Find security groups without network interfaces
-    security_groups_without_interfaces = []
-    for group in security_groups:
-        if len(group['IpPermissionsEgress']) == 0 and len(group['IpPermissions']) == 0:
-            security_group_info = {
-                'GroupId': group['GroupId'],
-                'Name': group['GroupName'],
-                'Description': group['Description']
-            }
-            security_groups_without_interfaces.append(security_group_info)
+    # Filter sg with no network interfaces
+    security_groups = []
+    for group in response['SecurityGroups']:
+        if group['GroupId'] not in interface_sg_ids:
+            security_groups.append(group)
 
-    # Print the security groups without network interfaces
-    print("Security Groups without Network Interfaces:")
-    for group_info in security_groups_without_interfaces:
-        print(f"ID: {group_info['GroupId']}")
-        print(f"Name: {group_info['Name']}")
-        print(f"Description: {group_info['Description']}")
-        print("---")
+    return security_groups
 
-# Call the function to find security groups without network interfaces
-find_security_groups_without_network_interfaces()
+# Calling the function to find SGs with no network interfaces
+result = search_sg_with_no_interfaces()
+
+# Print the SG details
+for group in result:
+    print("Security Group ID:", group['GroupId'])
+    print("Security Group Name:", group['GroupName'])
+    print("Security Group Description:", group['Description'])
+    print("---")
